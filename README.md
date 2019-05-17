@@ -16,6 +16,7 @@
 - [具体实践-流行度预测](#具体实践-流行度预测)
     - [1.数据描述](#1数据描述)
     - [2.时序数据特点](#2时序数据特点)
+    - [时序数据分解方式](#时序数据分解方式)
     - [3.外部特征](#3外部特征)
     - [4.模型初步结构](#4模型初步结构)
     - [5.现阶段结果](#5现阶段结果)
@@ -54,7 +55,7 @@
 
 ### 4.序列分解
 
-> 对于无明显周期和非平稳时序数据，直接预测难以达到满意效果，可以利用经验模式分解(empirical mode decomposition,EMD)和长短期记忆(long short-term memory, LSTM)的组合算法应用于时序预测。将时序数据通过EMD算法进行分解,然后将分解后的分量数据分别转化为三维数据样本。对归一化的分量数据和原始数据分别进行预测建模及其 重构。
+> 对于无明显周期和非平稳时序数据，直接预测难以达到满意效果，可以利用经验模式分解(empirical mode decomposition,EMD)和长短期记忆(long short-term memory, LSTM)的组合算法应用于时序预测。将时序数据通过EMD算法进行分解,然后将分解后的分量数据分别转化为三维数据样本。对归一化的分量数据和原始数据分别进行预测建模及重构。
 
 ## 具体实践-流行度预测
 
@@ -68,6 +69,18 @@
 - 非平稳
     1. 时间序列分解
 解决方案：**分解-->预测-->重组**
+
+### 时序数据分解方式
+
+- LN分解
+> 分解成线性项和非线性项。可以理解成ensemble实现。
+<div align=center><img width="700" height="400" src="fig/LN分解.png"/></div>
+
+- EMD分解
+> 分解成IMF分量。
+<div align=center><img width="700" height="450" src="fig/EMD分解.png"/></div>
+
+- 小波分解
 
 ### 3.外部特征
 - 视频的文本描述
@@ -88,17 +101,22 @@ base模型的结构图：
 
 ### 5.现阶段结果
 
-<div align=center><img width="500" height="200" src="fig/result_2019-5-15.png"/></div>
+- 2019-5-17
+<div align=center><img width="500" height="300" src="fig/result_2019-5-17_seed_1000.png"/></div>
 
-> 提升思路
-- wide-deep模型。加入低阶特征
-- embedding+lstm模型
-- attention比较
-- encoder替换
+> 调参的主要心得：
+- 初始学习率很重要。现在使用的学习率为1e-2，当val_loss5次没有提升则将学习率变为十分之一。
+- 激活函数也有影响。lstm最好使用tanh，dense的激活函数可以从relu换为selu/prelu。
+
+> 提升思路：
+- wide-deep模型，加入低阶特征, 混合模型是当前主要的提升手段
+- embedding+lstm模型，在lstm前加入embedding层
+- attention比较,多个attention拼接
+- encoder替换:LSTM-->TCNN,Dense-->Transformer
 
 ### 6.问题
 
-- 直接的LSTM模型效果比不上线性模型
+- 直接的LSTM模型效果比不上线性模型，需要细调模型结构
 - 稀疏的数据是否需要数据归一化
 
 ### 7.进阶
